@@ -1,0 +1,1112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rule name="ABSSIBOR" ruleversion="20151007" engineversion="2.0.12.211" langversion="Agile_1.0.0" description="ABS SIBOR Fixing">
+  <global info="MABSSISGDINFO" states="MABSSISGDSTATE" primcalendar="con:[LOCAL_CALENDAR]" primbrokers="con:[SUBMITTERS]" primtenors="con:[TENORS]" style="broker_based" hasband="true" quotes="ASK"></global>
+  <!--list all commands that this rule supports, and on admin web interface, only need to show these supported commands!-->
+  <commands>
+    <command id="Terminate" type="Terminate">
+      <conditions>
+        <condition type="time" predicate="during">con:[*RESET_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$haspublished() == false]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="Abort" type="Abort">
+      <conditions>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$isprocessing() || $isstandby()]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="Inhibit" type="Inhibit">
+      <conditions>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$isprocessing()]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="ModifyDate" type="ModifyDate">
+      <conditions>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$isprocessing()]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="Resnap" type="Resnap">
+      <conditions>
+        <condition type="time" predicate="during">con:[*SUB_WIN_OPEN_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$isprocessing()]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="ModifyData" type="ModifyData">
+      <conditions>
+        <condition type="time" predicate="during">con:[*SUB_WIN_OPEN_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$isprocessing()]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="Suspend" type="Suspend">
+      <conditions>
+        <condition type="time" predicate="during">con:[*SUB_WIN_OPEN_TIME],con:[*STOP_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$isprocessing()]]></exp>
+        </condition>
+      </conditions>
+    </command>
+    <command id="Refix" type="Refix">
+      <conditions>
+        <condition type="time" predicate="during">con:[*PUB_TIME],con:[*NO_REFIX_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$haspublished() && $isrefix() == false]]></exp>
+        </condition>
+      </conditions>
+    </command>
+  </commands>
+  <!--***********************************-->
+  <components>
+    <component id="InputRics" name="input rics" type="broker" brokers="con:[SUBMITTERS]" tenors="con:[TENORS]" hasexctenors="yes">
+      <instruments>
+        <instrument id="rics" type="logical_pattern" source="yes" template="LOGICAL_GEN_1" pattern="con:[IN_SUB_RIC]" />
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred input" type="shred_log">
+          <results>
+            <result type="decimal" name="PRIMACT_1" input="InputRics.rics:PRIMACT_1" />
+            <result type="DateTime" name="VALUE_DT1" input="InputRics.rics:VALUE_DT1" />
+            <result type="TimeSpan" name="VALUE_TS1" input="InputRics.rics:VALUE_TS1" />
+          </results>
+        </action>
+        <action id="ClearInput" name="clear input rics" type="clear_logical" clearexcluded="yes" date="InputRics.Shred:VALUE_DT1" time="InputRics.Shred:VALUE_TS1" configtime="con:[*CLEAR_DOWN_TIME]">
+          <fields>
+            <field name="PRIMACT_1" value="+0" />
+          </fields>
+        </action>
+        <!--Submittion verification checks-->
+        <action id="AutoSnapCheck" name="update check" type="chk_update" quotes="InputRics.Shred:PRIMACT_1" open="con:[*SUB_WIN_OPEN_TIME]" close="con:[*SUB_WIN_CLOSE_TIME]" date="InputRics.Shred:VALUE_DT1" time="InputRics.Shred:VALUE_TS1">
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="ResnapCheck" name="window check" type="chk_window" open="con:[*START_TIME]" close="con:[*STOP_TIME]" date="InputRics.Shred:VALUE_DT1" time="InputRics.Shred:VALUE_TS1">
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="AutoSnapCheckResults" name="auto snap checkResults" type="general_check">
+          <check>
+            <expression><![CDATA[x]]></expression>
+            <maps>
+              <map alias="x" ref="InputRics.AutoSnapCheck:ok" type="action" des="auto snap check" />
+            </maps>
+          </check>
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="ResnapCheckResults" name="resnapCheck group" type="general_check">
+          <check>
+            <expression><![CDATA[x]]></expression>
+            <maps>
+              <map alias="x" ref="InputRics.ResnapCheck:ok" type="action" des="resnap check" />
+            </maps>
+          </check>
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="ConfirmNoDataCheck" name="update check" type="chk_update" quotes="InputRics.Shred:PRIMACT_1" open="con:[*START_TIME]" close="con:[*STOP_TIME]" date="InputRics.Shred:VALUE_DT1" time="InputRics.Shred:VALUE_TS1">
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="RoundValue" name="round ask" type="general_cal">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[Valid(x)]]></exp>
+              <maps>
+                <map alias="x" ref="InputRics.Shred:PRIMACT_1" type="action" des="action" />
+              </maps>
+            </condition>
+          </conditions>
+          <calculate>
+            <expression><![CDATA[Round(x,y)]]></expression>
+            <maps>
+              <map alias="x" ref="InputRics.Shred:PRIMACT_1" type="action" des="action" />
+              <map alias="y" ref="con:[INPUT_DP]" type="config" des="dp" />
+            </maps>
+          </calculate>
+          <results>
+            <result type="decimal" name="value" />
+          </results>
+        </action>
+        <action id="MovAverage" name="moving average" type="calculate" methodology="con:[MOV_AVE_METH]" sort="independent" dp="con:[OUTPUT_DP]">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x == true]]></exp>
+              <maps>
+                <map alias="x" ref="InputRics.ConfirmNoDataCheck:ok" />
+              </maps>
+            </condition>
+          </conditions>
+          <results>
+            <result type="decimal" name="movave" input="InputRics.RoundValue:value" />
+          </results>
+        </action>
+        <action id="TolCheck" name="tolerance check" type="chk_tolerance" average="InputRics.MovAverage:movave" input="InputRics.Shred:PRIMACT_1" tolerance="con:[TOLERANCE]">
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="Information" name="information result" type="switch_value">
+          <cases>
+            <case value="con:[INHIBITED_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[ a == 1 ]]></exp>
+                  <maps>
+                    <map alias="a" ref="ConfirmRics.Shred:BCKGRNDPAG" type="action" des="inhibit sign" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[ERROR_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[a == false]]></exp>
+                  <maps>
+                    <map alias="a" ref="InputRics.ConfirmNoDataCheck:ok" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[WARN_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[ a == false ]]></exp>
+                  <maps>
+                    <map alias="a" ref="InputRics.TolCheck:ok" type="action" des="flagged check" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[GOOD_DATA_FLAG]" type="config"></case>
+          </cases>
+          <results>
+            <result type="string" name="information" />
+          </results>
+        </action>
+<!--
+        <module id="AutoPadding" name="padding prices" type="module" childstyle="Matrix">
+          <action id="PaddingBid" namee="padding bid" type="general_cal">
+            <calculate>
+              <expression><![CDATA[RoundToString(x, y)]]></expression>
+                <maps>
+                  <map alias="x" ref="InputRics.Shred:PRIMACT_1" type="action" des="ask"/>
+                  <map alias="y" ref="con:[INPUT_DP]" type="config" des="input dp"/>
+                </maps>
+            </calculate>
+            <results>
+              <result type="decimal" name="PRIMACT_1"/>
+            </results>
+          </action>
+        </module>
+-->
+        <!--Input Ric action group used in trigger-->
+        <action id="CheckInputs" name="checkInputs" type="actionGroup" members="InputRics.AutoSnapCheck,InputRics.AutoSnapCheckResults"></action>
+        <action id="Cleardown" name="Cleardown actionGroup" type="actionGroup" members="InputRics.ClearInput"></action>
+        <action id="ResnapCheckInputs" name="checkInputs" type="actionGroup" members="InputRics.ResnapCheck,InputRics.ResnapCheckResults"></action>
+        <action id="Modify" name="modify input ric" type="modify_data" quots="ASK" field="PRIMACT_1" />
+      </actions>
+    </component>
+    <component id="SubmitterRics" name="publish panel bank rics" type="output" brokers="con:[SUBMITTERS]" tenors="con:[TENORS]" hasexctenors="no">
+      <instruments>
+        <instrument id="rics" type="logical_pattern" source="yes" template="LOGICAL_GEN_1" pattern="con:[OUT_SUB_RIC]" />
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred panel bank rics" type="shred_log" dateformat="dd MMM yyyy" timeformat="hh:mm:ss">
+          <results>
+            <result type="decimal" name="PRIMACT_1" input="SubmitterRics.rics:PRIMACT_1" />
+            <result type="DateTime" name="VALUE_DT1" input="SubmitterRics.rics:VALUE_DT1" />
+            <result type="TimeSpan" name="VALUE_TS1" input="SubmitterRics.rics:VALUE_TS1" />
+            <result type="decimal" name="PRIMACT_2" input="SubmitterRics.rics:PRIMACT_2" />
+            <result type="DateTime" name="VALUE_DT2" input="SubmitterRics.rics:VALUE_DT2" />
+            <result type="TimeSpan" name="VALUE_TS2" input="SubmitterRics.rics:VALUE_TS2" />
+            <result type="decimal" name="PRIMACT_3" input="SubmitterRics.rics:PRIMACT_3" />
+            <result type="DateTime" name="VALUE_DT3" input="SubmitterRics.rics:VALUE_DT3" />
+            <result type="TimeSpan" name="VALUE_TS3" input="SubmitterRics.rics:VALUE_TS3" />
+            <result type="string" name="GV3_TEXT" input="SubmitterRics.rics:GV3_TEXT" />
+            <result type="decimal" name="NETCHNG_1" input="SubmitterRics.rics:NETCHNG_1" />
+          </results>
+        </action>
+        <action id="PublishQuote" name="publish panel ask" type="copy_price_logical" dp="con:[OUTPUT_DP]" textfornull="+0" input="ConfirmRics.Shred:PRIMACT_1" field="PRIMACT_1" checkprice="yes" refixfield="GV3_TEXT" refixcount="SubmitterRics.Shred:GV3_TEXT" refinput="SubmitterRics.Shred:PRIMACT_1" checkdate="yes" refdate="SubmitterRics.Shred:VALUE_DT1">
+          <maps>
+            <map from="" to="+0">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[Valid(x) == false || y == false || z == false]]></exp>
+                  <maps>
+                    <map alias="x" ref="FixingRics.SwitchFixingPublishVal:value" type="action" des="Can fix" />
+                    <map alias="y" ref="ConfirmRics.CompletenessCheck:ok" type="action" des="Completeness check fail" />
+                    <map alias="z" ref="FixingRics.ThresholdCheck:result" type="action" des="threshold check fail" />
+                  </maps>
+                </condition>
+              </conditions>
+            </map>
+          </maps>
+        </action>
+        <action id="PublishNetChange" name="publish netChange" type="copy_price_logical" dp="con:[OUTPUT_DP]" textfornull="+0" input="SubmitterRics.Netchng:ask" field="NETCHNG_1" checkprice="yes" refinput="SubmitterRics.Shred:NETCHNG_1" checkdate="yes" refdate="SubmitterRics.Shred:VALUE_DT1"></action>
+        <action id="GetLastQuote" name="get last workingday ask" type="get_last_workingday_quot" rippleprice="SubmitterRics.Shred:(PRIMACT_1,PRIMACT_2,PRIMACT_3)" rippledate="SubmitterRics.Shred:(VALUE_DT1,VALUE_DT2,VALUE_DT3)" rippletime="SubmitterRics.Shred:(VALUE_TS1,VALUE_TS2,VALUE_TS3)" calendar="con:[LOCAL_CALENDAR]">
+          <results>
+            <result type="decimal" name="ask" />
+          </results>
+        </action>
+        <action id="Netchng" name="net change for ask" type="net_chng" rippleprice="SubmitterRics.Shred:(PRIMACT_1,PRIMACT_2,PRIMACT_3)" rippledate="SubmitterRics.Shred:(VALUE_DT1,VALUE_DT2,VALUE_DT3)" rippletime="SubmitterRics.Shred:(VALUE_TS1,VALUE_TS2,VALUE_TS3)" calendar="con:[LOCAL_CALENDAR]">
+          <results>
+            <result type="decimal" name="ask" input="ConfirmRics.Shred:PRIMACT_1" />
+          </results>
+        </action>
+        <action id="NetchngForAutoSnap" name="net change for ask" type="net_chng" rippleprice="SubmitterRics.Shred:(PRIMACT_1,PRIMACT_2,PRIMACT_3)" rippledate="SubmitterRics.Shred:(VALUE_DT1,VALUE_DT2,VALUE_DT3)" rippletime="SubmitterRics.Shred:(VALUE_TS1,VALUE_TS2,VALUE_TS3)" calendar="con:[LOCAL_CALENDAR]">
+          <results>
+            <result type="decimal" name="ask" input="InputRics.Shred:PRIMACT_1" />
+          </results>
+        </action>
+        <action id="PublishText" name="publish value date" type="copy_date_logical" format="ddMMMyy" uppercase="yes" input="OutDateRicsX.Shred:valuedate" referinput="FixingRics.SwitchFixingPublishVal:value" field="GEN_TEXT16" nofix="NO FIX">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x]]></exp>
+              <maps>
+                <map alias="x" ref="FixingRics.ThresholdCheck:result" type="action" des="threhold check" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <!--Group actions-->
+        <action id="Publish" name="publish actionGroup" type="group" members="SubmitterRics.GetLastQuote,SubmitterRics.PublishQuote,SubmitterRics.Netchng,SubmitterRics.PublishNetChange,SubmitterRics.PublishText">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x]]></exp>
+              <maps>
+                <map alias="x" ref="FixingRics.ThresholdCheck:result" type="action" des="Can fix" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+      </actions>
+    </component>
+    <!--Define confirmation Rics and actions-->
+    <component id="ConfirmRics" name="confirm rics" type="confirm" brokers="con:[SUBMITTERS]" tenors="con:[TENORS]" hasexctenors="yes">
+      <instruments>
+        <instrument id="rics" type="logical_pattern" source="yes" template="LOGICAL_GEN_1" pattern="con:[INT_CFM_RIC]" />
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred confirmation rics" type="shred_log" dateformat="dd MMM yyyy" timeformat="hh:mm:ss">
+          <results>
+            <result type="decimal" name="PRIMACT_1" input="ConfirmRics.rics:PRIMACT_1" />
+            <result type="decimal" name="SEC_ACT_1" input="ConfirmRics.rics:SEC_ACT_1" />
+            <result type="DateTime" name="GV3_DATE" input="ConfirmRics.rics:GV3_DATE" />
+            <result type="TimeSpan" name="GV3_TIME" input="ConfirmRics.rics:GV3_TIME" />
+            <result type="string" name="GEN_TEXT16" input="ConfirmRics.rics:GEN_TEXT16" />
+            <result type="decimal" name="GEN_VAL3" input="ConfirmRics.rics:GEN_VAL3" />
+            <result type="int" name="BCKGRNDPAG" input="ConfirmRics.rics:BCKGRNDPAG" />
+          </results>
+        </action>
+        <action id="ShredTime" name="shred confirmation time" type="shred_log" dateformat="dd MMM yyyy" timeformat="hh:mm:ss">
+          <results>
+            <result type="DateTime" name="VALUE_DT1" input="ConfirmRics.rics:VALUE_DT1" />
+            <result type="TimeSpan" name="VALUE_TS1" input="ConfirmRics.rics:VALUE_TS1" />
+          </results>
+        </action>
+        <!--Clear confirmation rics-->
+        <action id="ClearConfirm" name="clear confirm rics" type="clear_logical" clearexcluded="yes" date="ConfirmRics.ShredTime:VALUE_DT1" time="ConfirmRics.ShredTime:VALUE_TS1" configtime="con:[*CLEAR_DOWN_TIME]">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[ a != 1 ]]></exp>
+              <maps>
+                <map alias="a" ref="ConfirmRics.Shred:BCKGRNDPAG" type="action" des="inhibit sign" />
+              </maps>
+            </condition>
+          </conditions>
+          <fields>
+            <field name="PRIMACT_1" value="+0" />
+            <field name="SEC_ACT_1" value="+0" />
+            <field name="GEN_TEXT16" value="con:[ERROR_DATA_FLAG]" />
+            <field name="GV3_DATE" value=" " />
+            <field name="GV3_TIME" value=" " />
+            <field name="GEN_VAL3" value=" " />
+          </fields>
+        </action>
+        <action id="ClearWhenInhibit" name="clear confirm rics" type="clear_logical" clearexcluded="yes" date="ConfirmRics.ShredTime:VALUE_DT1" time="ConfirmRics.ShredTime:VALUE_TS1" configtime="con:[*CLEAR_DOWN_TIME]">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[ a == 1 ]]></exp>
+              <maps>
+                <map alias="a" ref="ConfirmRics.Shred:BCKGRNDPAG" type="action" des="inhibit sign" />
+              </maps>
+            </condition>
+          </conditions>
+          <fields>
+            <field name="PRIMACT_1" value="+0" />
+            <field name="SEC_ACT_1" value="+0" />
+            <field name="GV3_DATE" value=" " />
+            <field name="GV3_TIME" value=" " />
+            <field name="GEN_VAL3" value=" " />
+          </fields>
+        </action>
+        <!--Copy prices-->
+        <action id="ConfirmPrice" name="confirm price" type="snap_logical" input="InputRics.Shred:PRIMACT_1,InputRics.Shred:VALUE_DT1,InputRics.Shred:VALUE_TS1,InputRics.Shred:PRIMACT_1,SubmitterRics.NetchngForAutoSnap:ask" fields="PRIMACT_1,GV3_DATE,GV3_TIME,GEN_VAL3,SEC_ACT_1" inputdatefield="InputRics.Shred:VALUE_DT1" inputtimefield="InputRics.Shred:VALUE_TS1" confirmdatefield="ConfirmRics.Shred:GV3_DATE" confirmtimefield="ConfirmRics.Shred:GV3_TIME" allowrepeat="true" memory="ConfirmRics.Shred:PRIMACT_1,ConfirmRics.Shred:GV3_DATE,ConfirmRics.Shred:GV3_TIME,ConfirmRics.Shred:GEN_VAL3,ConfirmRics.Shred:SEC_ACT_1">
+          <conditions>
+            <condition type="bool" predicate="true">InputRics.AutoSnapCheckResults:ok</condition>
+            <condition type="expression">
+              <exp><![CDATA[ a != 1 ]]></exp>
+              <maps>
+                <map alias="a" ref="ConfirmRics.Shred:BCKGRNDPAG" type="action" des="inhibit sign" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <action id="ResnapPrice" name="resnap price" type="snap_logical" input="InputRics.Shred:PRIMACT_1,InputRics.Shred:VALUE_DT1,InputRics.Shred:VALUE_TS1,InputRics.Shred:PRIMACT_1,SubmitterRics.NetchngForAutoSnap:ask" fields="PRIMACT_1,GV3_DATE,GV3_TIME,GEN_VAL3,SEC_ACT_1" inputdatefield="InputRics.Shred:VALUE_DT1" inputtimefield="InputRics.Shred:VALUE_TS1" confirmdatefield="ConfirmRics.Shred:GV3_DATE" confirmtimefield="ConfirmRics.Shred:GV3_TIME" allowrepeat="true" memory="ConfirmRics.Shred:PRIMACT_1,ConfirmRics.Shred:GV3_DATE,ConfirmRics.Shred:GV3_TIME,ConfirmRics.Shred:GEN_VAL3,ConfirmRics.Shred:SEC_ACT_1">
+          <conditions>
+            <condition type="bool" predicate="true">InputRics.ResnapCheckResults:ok</condition>
+            <condition type="expression">
+              <exp><![CDATA[( a!= 1 )]]></exp>
+              <maps>
+                <map alias="a" ref="ConfirmRics.Shred:BCKGRNDPAG" type="action" des="inhibit sign" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <!--Confirmation Value-add, include Net Change and Information-->
+        <!--Generate Information-->
+        <action id="Information" name="information result" type="switch_value">
+          <cases>
+            <case value="con:[INHIBITED_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[ a == 1 ]]></exp>
+                  <maps>
+                    <map alias="a" ref="ConfirmRics.Shred:BCKGRNDPAG" type="action" des="inhibit sign" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[ERROR_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[a == false]]></exp>
+                  <maps>
+                    <map alias="a" ref="ConfirmRics.UpdateCheck:ok" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[INCOMPLETE_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[a == false]]></exp>
+                  <maps>
+                    <map alias="a" ref="ConfirmRics.CompletenessCheck:ok" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[WARN_DATA_FLAG]" type="config">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[ a == false ]]></exp>
+                  <maps>
+                    <map alias="a" ref="ConfirmRics.QualityChecksResult:ok" type="action" des="flagged check" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="con:[GOOD_DATA_FLAG]" type="config"></case>
+          </cases>
+          <results>
+            <result type="string" name="information" />
+          </results>
+        </action>
+        <action id="SendInformation" name="send information" type="copy_string_logical" input="ConfirmRics.Information:information" fields="GEN_TEXT16">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[ x != y ]]></exp>
+              <maps>
+                <map alias="x" ref="ConfirmRics.Shred:GEN_TEXT16" type="action" des="Confirm message" />
+                <map alias="y" ref="ConfirmRics.Information:information" type="action" des="send message" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <action id="ClearInhibit" name="clear inhibit" type="clear_logical" clearexcluded="yes" date="ConfirmRics.ShredTime:VALUE_DT1" time="ConfirmRics.ShredTime:VALUE_TS1" configtime="con:[*CLEAR_DOWN_TIME]">
+          <fields>
+            <field name="BCKGRNDPAG" value=" " />
+          </fields>
+        </action>
+        <!--Confirmation ric checks, will not cal fixing if the price check failed, this is additional hidden logic from dev point of view-->
+        <action id="UpdateCheck" name="update check" type="chk_update" quotes="ConfirmRics.Shred:PRIMACT_1" open="con:[*START_TIME]" close="con:[*STOP_TIME]" date="ConfirmRics.Shred:GV3_DATE" time="ConfirmRics.Shred:GV3_TIME">
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="CompletenessCheck" name="check if all tenor update for broker" type="broker_status" input="ConfirmRics.UpdateCheck:ok">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x != 1]]></exp>
+              <maps>
+                <map alias="x" ref="ConfirmRics.Shred:BCKGRNDPAG" />
+              </maps>
+            </condition>
+          </conditions>
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="ConfirmChecksResult" name="ConfirmChecks result" type="general_check" failstatus="NoData">
+          <check>
+            <expression><![CDATA[x]]></expression>
+            <maps>
+              <map alias="x" ref="ConfirmRics.CompletenessCheck:ok" type="action" des="completeness check" />
+            </maps>
+          </check>
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <!--Quality checks, include combination of tolerance&spread, stddev,fix band,trend movement,rate deviation,net change check etc-->
+        <action id="MovAverage" name="moving average" type="calculate" methodology="con:[MOV_AVE_METH]" sort="independent" dp="con:[OUTPUT_DP]">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x == true]]></exp>
+              <maps>
+                <map alias="x" ref="ConfirmRics.ConfirmChecksResult:ok" />
+              </maps>
+            </condition>
+          </conditions>
+          <results>
+            <result type="decimal" name="movave" input="ConfirmRics.RoundValue:value" />
+          </results>
+        </action>
+        <action id="CalSpread" name="calc spread" type="calc_spread" average="ConfirmRics.MovAverage:movave" tolerance="con:[TOLERANCE]">
+          <results>
+            <result type="decimal" name="upper" />
+            <result type="decimal" name="lower" />
+          </results>
+        </action>
+        <action id="TolCheck" name="tolerance check" type="chk_tolerance" average="ConfirmRics.MovAverage:movave" input="ConfirmRics.Shred:PRIMACT_1" tolerance="con:[TOLERANCE]">
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="QualityChecksResult" name="QualityChecksResultool" type="general_check">
+          <check>
+            <expression><![CDATA[x]]></expression>
+            <maps>
+              <map alias="x" ref="ConfirmRics.TolCheck:ok" type="action" des="update check" />
+            </maps>
+          </check>
+          <results>
+            <result type="bool" name="ok" />
+          </results>
+        </action>
+        <action id="WebUpdateChecksResult" name="webUpdateChecksResult" type="combine_status" checklist="ConfirmRics.ConfirmChecksResult:ok,ConfirmRics.QualityChecksResult:ok">
+          <results>
+            <result name="value" type="int" />
+          </results>
+        </action>
+        <!--Statistics-->
+        <action id="Statistics" name="get statistics" type="get_statistics" input="ConfirmRics.WebUpdateChecksResult:value" brokerbased="all" inhibitsign="ConfirmRics.Shred:BCKGRNDPAG">
+          <results>
+            <result name="submissions" type="int" />
+            <result name="errors" type="int" />
+            <result name="warnings" type="int" />
+            <result name="inhibits" type="int" />
+          </results>
+        </action>
+        <action id="UpdateInhibit" name="update inhibit sign" type="update_inhibit_sign" shred="ConfirmRics.Shred" field="BCKGRNDPAG">
+          <fields>
+            <field name="PRIMACT_1" value="+0" />
+            <field name="SEC_ACT_1" value="+0" />
+            <field name="GEN_TEXT16" value="con:[INHIBITED_DATA_FLAG]" />
+            <field name="GV3_DATE" value=" " />
+            <field name="GV3_TIME" value=" " />
+            <field name="GEN_VAL3" value=" " />
+          </fields>
+        </action>
+        <action id="RoundValue" name="round ask" type="general_cal">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[Valid(x)]]></exp>
+              <maps>
+                <map alias="x" ref="ConfirmRics.Shred:PRIMACT_1" type="action" des="action" />
+              </maps>
+            </condition>
+          </conditions>
+          <calculate>
+            <expression><![CDATA[Round(x,y)]]></expression>
+            <maps>
+              <map alias="x" ref="ConfirmRics.Shred:PRIMACT_1" type="action" des="action" />
+              <map alias="y" ref="con:[INPUT_DP]" type="config" des="dp" />
+            </maps>
+          </calculate>
+          <results>
+            <result type="decimal" name="value" />
+          </results>
+        </action>
+        <!--Benchmark Calculation-->
+        <action id="CalFixing" name="calculate fixing" type="calculate" methodology="con:[BMK_METH]" sort="independent" dp="con:[OUTPUT_DP]" minbankcount="con:[MIN_BANKS]">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x]]></exp>
+              <maps>
+                <map alias="x" ref="ConfirmRics.ConfirmChecksResult:ok" />
+              </maps>
+            </condition>
+          </conditions>
+          <results>
+            <result type="decimal" name="ask" input="ConfirmRics.RoundValue:value" />
+          </results>
+        </action>
+        <action id="FixingPossible" name="fixing possible" type="count">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[Valid(x)]]></exp>
+              <maps>
+                <map alias="x" ref="FixingRics.SwitchFixingPublishVal:value" />
+              </maps>
+            </condition>
+          </conditions>
+          <results>
+            <result type="int" name="count" />
+          </results>
+        </action>
+        <action id="askMinMax" name="askMinMax" type="max_min_price" input="ConfirmRics.RoundValue:value" methodology="con:[BMK_METH]">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x]]></exp>
+              <maps>
+                <map alias="x" ref="ConfirmRics.ConfirmChecksResult:ok" />
+              </maps>
+            </condition>
+          </conditions>
+          <results>
+            <result type="decimal" name="contributionMaximum" />
+            <result type="decimal" name="contributionMinimum" />
+            <result type="decimal" name="contributionIncludedMaximum" />
+            <result type="decimal" name="contributionIncludedMinimum" />
+          </results>
+        </action>
+<!--
+        <module id="AutoPadding" name="padding prices" type="module" childstyle="Matrix">
+          <action id="PaddingBid" namee="padding bid" type="general_cal">
+            <calculate>
+              <expression><![CDATA[RoundToString(x, y)]]></expression>
+                <maps>
+                  <map alias="x" ref="ConfirmRics.Shred:PRIMACT_1" type="action" des="ask"/>
+                  <map alias="y" ref="con:[INPUT_DP]" type="config" des="input dp"/>
+                </maps>
+            </calculate>
+            <results>
+              <result type="decimal" name="PRIMACT_1"/>
+            </results>
+          </action>
+        </module>
+-->
+        <!--Action Groups-->
+        <action id="Cleardown" name="Cleardown actionGroup" type="actionGroup" members="ConfirmRics.ClearConfirm,ConfirmRics.ClearWhenInhibit"></action>
+        <action id="SendMessage" name="send message" type="actionGroup" members="ConfirmRics.Information,ConfirmRics.SendInformation"></action>
+        <action id="ConfirmChecks" name="ConfirmChecks" type="actionGroup" members="ConfirmRics.UpdateCheck,ConfirmRics.CompletenessCheck,ConfirmRics.ConfirmChecksResult"></action>
+        <action id="AutoSnap" name="autoSnap" type="actionGroup" members="InputRics.ConfirmNoDataCheck,InputRics.RoundValue,InputRics.MovAverage,InputRics.TolCheck,InputRics.Information,SubmitterRics.NetchngForAutoSnap,ConfirmRics.ConfirmPrice"></action>
+        <action id="QualityChecks" name="QualityChecks" type="actionGroup" members="ConfirmRics.MovAverage,ConfirmRics.CalSpread,ConfirmRics.TolCheck,ConfirmRics.QualityChecksResult,ConfirmRics.WebUpdateChecksResult"></action>
+        <action id="CalBenchmarkFixing" name="calBenchmarkFixing" type="actionGroup" members="ConfirmRics.RoundValue,ConfirmRics.CalFixing,ConfirmRics.FixingPossible,ConfirmRics.askMinMax,FixingRics.ThresholdCheck,FixingRics.SwitchFixingPublishVal"></action>
+        <action id="Resnap" name="reSnap" type="actionGroup" members="SubmitterRics.NetchngForAutoSnap,InputRics.ConfirmNoDataCheck,InputRics.RoundValue,InputRics.MovAverage,InputRics.TolCheck,InputRics.Information,ConfirmRics.ResnapPrice"></action>
+      </actions>
+    </component>
+    <component id="DateGenerator" name="date generator" type="dategenerator" tenors="con:[TENORS]">
+      <actions>
+        <action id="CalToday" name="today" type="generatedate" method="today">
+          <results>
+            <result type="DateTime" name="today" />
+          </results>
+        </action>
+        <action id="GenValueDate" name="valuedate" type="generatevaluedate" primcalendar="con:[LOCAL_CALENDAR]" secondcalendar="" method="T+2">
+          <tenors>
+            <tenor name="ON" method="T+0" />
+          </tenors>
+          <results>
+            <result type="DateTime" name="valuedate" />
+          </results>
+        </action>
+      </actions>
+    </component>
+    <component id="FixingRics" name="publish fixing rics" type="output" tenors="con:[TENORS]" hasexctenors="no">
+      <instruments>
+        <instrument id="rics" type="logical_pattern" source="yes" template="LOGICAL_GEN_1" pattern="con:[OUT_BMK_RIC]" />
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred input" type="shred_log">
+          <results>
+            <result type="decimal" name="PRIMACT_1" input="FixingRics.rics:PRIMACT_1" />
+            <result type="DateTime" name="VALUE_DT1" input="FixingRics.rics:VALUE_DT1" />
+            <result type="TimeSpan" name="VALUE_TS1" input="FixingRics.rics:VALUE_TS1" />
+            <result type="decimal" name="PRIMACT_2" input="FixingRics.rics:PRIMACT_2" />
+            <result type="DateTime" name="VALUE_DT2" input="FixingRics.rics:VALUE_DT2" />
+            <result type="TimeSpan" name="VALUE_TS2" input="FixingRics.rics:VALUE_TS2" />
+            <result type="decimal" name="PRIMACT_3" input="FixingRics.rics:PRIMACT_3" />
+            <result type="DateTime" name="VALUE_DT3" input="FixingRics.rics:VALUE_DT3" />
+            <result type="TimeSpan" name="VALUE_TS3" input="FixingRics.rics:VALUE_TS3" />
+            <result type="string" name="GV3_TEXT" input="FixingRics.rics:GV3_TEXT" />
+            <result type="decimal" name="NETCHNG_1" input="FixingRics.rics:NETCHNG_1" />
+          </results>
+        </action>
+        <!--Publish actions-->
+        <action id="Publishfixing" name="publish fixing ask" type="copy_price_logical" dp="con:[OUTPUT_DP]" textfornull="+0" input="FixingRics.SwitchFixingPublishVal:value" field="TRDPRC_1,BID,PRIMACT_1,RT_YIELD_1" refixfield="GV3_TEXT" refixcount="FixingRics.Shred:GV3_TEXT" checkprice="yes" refinput="FixingRics.Shred:PRIMACT_1" checkdate="yes" refdate="FixingRics.Shred:VALUE_DT1">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x]]></exp>
+              <maps>
+                <map alias="x" ref="FixingRics.ThresholdCheck:result" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <action id="PublishNetChange" name="publish netChange" type="copy_price_logical" dp="con:[OUTPUT_DP]" textfornull="+0" input="FixingRics.Netchng:ask" field="NETCHNG_1" checkprice="yes" refinput="FixingRics.Shred:NETCHNG_1" checkdate="yes" refdate="FixingRics.Shred:VALUE_DT1"></action>
+        <!--Benchmark Chart actions-->
+        <action id="GetLastQuote" name="get last workingday ask" type="get_last_workingday_quot" rippleprice="FixingRics.Shred:(PRIMACT_1,PRIMACT_2,PRIMACT_3)" rippledate="FixingRics.Shred:(VALUE_DT1,VALUE_DT2,VALUE_DT3)" rippletime="FixingRics.Shred:(VALUE_TS1,VALUE_TS2,VALUE_TS3)" calendar="con:[LOCAL_CALENDAR]">
+          <results>
+            <result type="decimal" name="ask" />
+          </results>
+        </action>
+        <action id="Netchng" name="net change for ask" type="net_chng" rippleprice="FixingRics.Shred:(PRIMACT_1,PRIMACT_2,PRIMACT_3)" rippledate="FixingRics.Shred:(VALUE_DT1,VALUE_DT2,VALUE_DT3)" rippletime="FixingRics.Shred:(VALUE_TS1,VALUE_TS2,VALUE_TS3)" calendar="con:[LOCAL_CALENDAR]">
+          <results>
+            <result type="decimal" name="ask" input="FixingRics.SwitchFixingPublishVal:value" />
+          </results>
+        </action>
+        <action id="PublishText" name="publish value date" type="copy_date_logical" format="ddMMMyy" uppercase="yes" input="OutDateRicsX.Shred:valuedate" referinput="FixingRics.SwitchFixingPublishVal:value" field="GEN_TEXT16" nofix="NO FIX" />
+        <!--Threshold calculation and check-->
+        <action id="ThresholdCheck" name="threshold check" type="chk_threshold" lastfixing="FixingRics.Shred:PRIMACT_1" refixfixing="ConfirmRics.CalFixing:ask" threshold="con:[REFIX_THRESHOLD]" dp="con:[OUTPUT_DP]">
+<!--
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[$isrefix() == true]]></exp>
+            </condition>
+          </conditions>
+-->
+          <results>
+            <result type="bool" name="result" />
+            <result type="bool" name="ui" />
+            <result type="string" name="netchange" />
+          </results>
+        </action>
+        <!--Swith value for publish-->
+        <action id="SwitchFixingPublishVal" name="new or old values" type="switch_value">
+          <cases>
+            <case value="ConfirmRics.CalFixing:ask" type="action">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[x]]></exp>
+                  <maps>
+                    <map alias="x" ref="FixingRics.ThresholdCheck:result" type="action" des="threhold value" />
+                  </maps>
+                </condition>
+              </conditions>
+            </case>
+            <case value="FixingRics.Shred:PRIMACT_1" type="action" />
+          </cases>
+          <results>
+            <result type="decimal" name="value" />
+          </results>
+        </action>
+        <!--Group actions-->
+        <action id="Publish" name="publish actionGroup" type="actionGroup" members="FixingRics.GetLastQuote,FixingRics.SwitchFixingPublishVal,FixingRics.Publishfixing,FixingRics.PublishText,FixingRics.Netchng,FixingRics.PublishNetChange"></action>
+      </actions>
+    </component>
+    <component id="FixingPage" name="fixing pages" type="output" brokers="con:[SUBMITTERS]" tenors="con:[TENORS]" hasexctenors="no">
+      <instruments>
+        <instrument id="rics" type="page_list" template="ABSIRFIX01A" source="yes" name="con:[OUT_BMK_PAGE]" x="brokers.idx" y="tenors.idx">
+          <fields>
+            <field name="today" pattern="FIX_DATE" />
+            <field name="fixing" pattern="FIX_{y}" />
+            <field name="refixsign" pattern="REFIX_FLAG_{y}" />
+          </fields>
+        </instrument>
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred input" type="shred_page">
+          <results>
+            <result type="decimal" name="fixing" input="FixingPage.rics:fixing" />
+          </results>
+        </action>
+        <!--Publish actions-->
+        <action id="PublishDate" name="publish today date" type="copy_date_page" format="dd MMM yyyy" uppercase="yes" input="DateGenerator.CalToday:today" field="today" />
+        <action id="PublishFixing" name="publish fixing rate" type="copy_price_page" dp="con:[OUTPUT_DP]" textfornull="NO FIX" input="FixingRics.SwitchFixingPublishVal:value" field="fixing" refinput="FixingPage.Shred:fixing" refixfield="refixsign" refixmask="*">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x]]></exp>
+              <maps>
+                <map alias="x" ref="FixingRics.ThresholdCheck:result" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <!--Clearpage actions-->
+        <action id="ClearPage" name="clear down page" type="clear_page">
+          <fields>
+            <field name="fixing,refixsign" value="" />
+          </fields>
+        </action>
+        <!--Group actions-->
+        <action id="Publish" name="Publish rate and date" type="actionGroup" members="FixingPage.Shred,FixingPage.PublishFixing,FixingPage.PublishDate" />
+        <action id="Cleardown" name="Cleardown page" type="actionGroup" members="FixingPage.ClearPage,FixingPage.PublishDate" />
+      </actions>
+    </component>
+    <component id="SubFixingPage" name="panel and fixing page" type="output" brokers="con:[SUBMITTERS]" tenors="con:[TENORS]">
+      <instruments>
+        <instrument id="rics" type="page_list" template="EMABSIRFIX02A,EMABSIRFIX02B" source="yes" name="con:[OUT_VENDOR_PAGE]" x="brokers.idx" y="tenors.idx">
+          <fields>
+            <field name="today" pattern="FIX_DATE" />
+            <field name="value_date" pattern="VALUE_DATE" />
+            <field name="bank" pattern="SUB_NAME_{x}" />
+            <field name="contribution" pattern="CONT_{y}_{x}" />
+            <field name="cont_refixsign" pattern="CONT_REFIX_FLAG_{y}_{x}" />
+            <field name="fixing" pattern="FIX_{y}" />
+            <field name="refixsign" pattern="FIX_REFIX_FLAG_{y}" />
+          </fields>
+        </instrument>
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred input" type="shred_page">
+          <results>
+            <result type="decimal" name="contribution" input="SubFixingPage.rics:contribution" />
+            <result type="decimal" name="fixing" input="SubFixingPage.rics:fixing" />
+          </results>
+        </action>
+        <!--TODO: NO FIX DATE when release in trigger-->
+        <action id="PubFixing" name="publish fixing ask" type="copy_price_page" dp="con:[OUTPUT_DP]" textfornull="NO FIX" input="FixingRics.SwitchFixingPublishVal:value" refinput="SubFixingPage.Shred:fixing" field="fixing" refixfield="refixsign" refixmask="*" />
+        <action id="PubDate" name="publish today date" type="copy_date_page" format="dd MMM yyyy" uppercase="yes" input="DateGenerator.CalToday:today" field="today" />
+        <action id="PubValueDate" name="publish value date" type="copy_date_page" format="dd MMM yyyy" uppercase="yes" input="DateGenerator.GenValueDate:valuedate" field="value_date" />
+        <action id="PubSubName" name="publish bank name" type="copy_string_page" input="brokers.name" field="bank" />
+        <action id="PubSubQuote" name="publish panel ask" type="copy_price_page" dp="con:[OUTPUT_DP]" textfornull="" input="ConfirmRics.Shred:PRIMACT_1" field="contribution" refinput="SubFixingPage.Shred:contribution" refixfield="cont_refixsign" refixmask="*">
+          <maps>
+            <map from="" to="">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[Valid(x) == false || y == false || z == false]]></exp>
+                  <maps>
+                    <map alias="x" ref="FixingRics.SwitchFixingPublishVal:value" type="action" des="Can fix" />
+                    <map alias="y" ref="ConfirmRics.CompletenessCheck:ok" type="action" des="Completeness check fail" />
+                    <map alias="z" ref="FixingRics.ThresholdCheck:result" type="action" des="threshold check fail" />
+                  </maps>
+                </condition>
+              </conditions>
+            </map>
+          </maps>
+        </action>
+        <action id="ClearPage" name="clear down page" type="clear_page">
+          <fields>
+            <field name="contribution,fixing,refixsign,cont_refixsign" value="" />
+          </fields>
+        </action>
+        <!--Group actions-->
+        <action id="Publish" name="Publish rate and date" type="group" members="SubFixingPage.Shred,SubFixingPage.PubDate,DateGenerator.GenValueDate,SubFixingPage.PubValueDate,SubFixingPage.PubFixing,SubFixingPage.PubSubQuote,SubFixingPage.PubSubName">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[x == true]]></exp>
+              <maps>
+                <map alias="x" ref="FixingRics.ThresholdCheck:result" type="action" des="Can fix" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <action id="Cleardown" name="Cleardown page" type="actionGroup" members="SubFixingPage.ClearPage,SubFixingPage.PubDate,SubFixingPage.PubSubName" />
+      </actions>
+    </component>
+    <component id="OutDateRicsX" name="output date rics" type="output" brokers="" tenors="con:[TENORS]">
+      <instruments>
+        <instrument id="rics" type="logical_pattern" source="yes" template="LOGICAL_GEN_1" pattern="con:[OUT_DATE_DAY_RIC]" />
+      </instruments>
+      <actions>
+        <action id="Shred" name="shred_date" type="shred_log">
+          <results>
+            <result type="DateTime" name="VALUE_DT1" input="OutDateRicsX.rics:VALUE_DT1" />
+            <result type="DateTime" name="valuedate" input="OutDateRicsX.rics:GEN_TEXT16" param="dd MMM yy" />
+            <result type="TimeSpan" name="VALUE_TS1" input="OutDateRicsX.rics:VALUE_TS1" />
+          </results>
+        </action>
+        <action id="CopyValueDate" name="copy value date" type="copy_date_logical" format="dd MMM yy" uppercase="yes" input="DateGenerator.GenValueDate:valuedate" referinput="" field="GEN_TEXT16" nofix="NO FIX" />
+        <action id="ModifyValuedate" name="modify date" type="modify_date" valueDateField="GEN_TEXT16" />
+        <action id="InitOutdateRic" name="clear outdate ric" type="clear_logical" date="OutDateRicsX.Shred:VALUE_DT1" time="OutDateRicsX.Shred:VALUE_TS1" configtime="con:[*START_TIME]">
+          <fields>
+            <field name="PRIMACT_1" value="+0" />
+          </fields>
+        </action>
+        <action id="ModifyOutdateRic" name="clear outdate ric" type="clear_logical">
+          <fields>
+            <field name="PRIMACT_1" value="+0" />
+          </fields>
+        </action>
+        <!--Group actions-->
+        <action id="CopyDates" name="copy dates actiongroup" type="group" members="OutDateRicsX.InitOutdateRic,OutDateRicsX.CopyValueDate">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[$updated("OutDateRicsX.rics") && $IsToday(x) == false]]></exp>
+              <maps>
+                <map alias="x" ref="OutDateRicsX.Shred:VALUE_DT1" />
+              </maps>
+            </condition>
+          </conditions>
+        </action>
+        <action id="Modify" name="Modification actionGroup" type="actionGroup" members="OutDateRicsX.ModifyOutdateRic,OutDateRicsX.ModifyValuedate"></action>
+      </actions>
+    </component>
+    <component id="WebUI" name="send to web" type="web_output" brokers="con:[SUBMITTERS]" tenors="con:[TENORS]" hasexctenors="yes">
+      <actions>
+        <action id="SubmitterDateView" name="copy price matrix" type="copy_string_web" datatype="broker">
+          <conditions>
+            <!--condition type="expression"><exp><![CDATA[$updated("InputRics.rics") || $updated("ConfirmRics.rics")]]></exp></condition-->
+            <condition type="time" predicate="during">con:[*CLEAR_DOWN_TIME],con:[*STOP_TIME]</condition>
+          </conditions>
+          <prices>
+            <price source="ConfirmRics.Shred:PRIMACT_1" category="display" quote="ASK" />
+            <price source="ConfirmRics.Shred:GEN_VAL3" category="raw" quote="ASK" />
+            <price source="InputRics.Shred:PRIMACT_1" category="original" quote="ASK" />
+            <price source="ConfirmRics.Shred:PRIMACT_1" category="confirm" quote="ASK" status="ConfirmRics.WebUpdateChecksResult:value" timestamp="ConfirmRics.Shred:GV3_TIME" correction="ConfirmRics.Shred:BCKGRNDPAG" />
+            <price source="SubmitterRics.GetLastQuote:ask" category="previous" quote="ASK" />
+            <price source="SubmitterRics.Netchng:ask" category="netchange" quote="ASK" />
+          </prices>
+        </action>
+        <action id="SwitchFixingVal" name="new or old values" type="switch_value">
+          <cases>
+            <case value="ConfirmRics.CalFixing:ask" type="action">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[$isrefix() == false]]></exp>
+                </condition>
+              </conditions>
+            </case>
+            <case value="FixingRics.Shred:PRIMACT_1" type="action">
+              <conditions>
+                <condition type="expression">
+                  <exp><![CDATA[$isrefix()]]></exp>
+                </condition>
+              </conditions>
+            </case>
+          </cases>
+          <results>
+            <result type="decimal" name="value" />
+          </results>
+        </action>
+        <action id="FixingRate" name="fixing rate" type="copy_price_web" dp="con:[OUTPUT_DP]" datatype="fixing">
+          <conditions>
+            <condition type="time" predicate="during">con:[*CLEAR_DOWN_TIME],con:[*STOP_TIME]</condition>
+          </conditions>
+          <prices>
+            <price source="WebUI.SwitchFixingVal:value" category="" quote="ASK" />
+          </prices>
+        </action>
+        <action id="RefixFixingRate" name="Refix fixing rate" type="copy_price_web" dp="con:[OUTPUT_DP]" datatype="fixing">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[$isrefix()]]></exp>
+            </condition>
+          </conditions>
+          <prices>
+            <price source="ConfirmRics.CalFixing:ask" category="warning" quote="ASK" status="FixingRics.ThresholdCheck:ui" />
+          </prices>
+        </action>
+        <action id="RefixFixingChange" name="Refix fixing change" type="copy_price_web" dp="con:[OUTPUT_DP]" datatype="fixing">
+          <conditions>
+            <condition type="expression">
+              <exp><![CDATA[$isrefix()]]></exp>
+            </condition>
+          </conditions>
+          <prices>
+            <price source="FixingRics.ThresholdCheck:netchange" category="warning" quote="ASK" status="FixingRics.ThresholdCheck:ui" />
+          </prices>
+        </action>
+        <action id="UpdateTimeLine" name="timelines" type="timeline_states">
+          <timelines>
+            <timeline name="Start" description="start" start="con:[*START_TIME]" stop="" />
+            <timeline name="Clear time" description="clear time" start="con:[*CLEAR_DOWN_TIME]" stop="" />
+            <timeline name="Contribution window" description="contribution window" start="con:[*SUB_WIN_OPEN_TIME]" stop="con:[*SUB_WIN_CLOSE_TIME]" />
+            <timeline name="Release" description="release" start="con:[*PUB_TIME]" stop="" />
+            <timeline name="No refix time" description="stop refix time" start="con:[*NO_REFIX_TIME]" stop="" />
+            <timeline name="Refix publish window" description="refix publish window" start="con:[*REFIX_WIN_PUB_START_TIME]" stop="con:[*REFIX_WIN_PUB_END_TIME]" />
+            <timeline name="Stop" description="stop" start="con:[*STOP_TIME]" stop="" />
+          </timelines>
+        </action>
+        <action id="SendDate" name="SendDate" type="copy_date_web">
+          <dates>
+            <date source="OutDateRicsX.Shred:valuedate" name="valuedate" format="dd MMM yy" />
+            <!--date source="DateGenerator.GenMaturityDate:maturitydate" name="maturitydate" format="dd/MM/yy"/-->
+          </dates>
+        </action>
+        <action id="Statistics" name="statistics" type="copy_statistics_web" submissions="ConfirmRics.Statistics:submissions" errors="ConfirmRics.Statistics:errors" warnings="ConfirmRics.Statistics:warnings" inhibits="ConfirmRics.Statistics:inhibits" />
+        <action id="AllSubAndMiddleQua" name="send contribution" type="send_contribute_prices">
+          <prices>
+            <price min="ConfirmRics.askMinMax:contributionMinimum" max="ConfirmRics.askMinMax:contributionMaximum" includedmin="ConfirmRics.askMinMax:contributionIncludedMinimum" includedmax="ConfirmRics.askMinMax:contributionIncludedMaximum" quote="ASK" />
+          </prices>
+        </action>
+        <action id="BenchmarkChart" name="benchmark chart" type="update_benchmark_chart" quote="ASK" fixing="WebUI.SwitchFixingVal:value" lastvalue="FixingRics.GetLastQuote:ask" netchng="FixingRics.Netchng:ask" />
+        <action id="SendSpread" name="send spread" type="spread_data_web" dp="con:[OUTPUT_DP]">
+          <prices>
+            <price source="ConfirmRics.CalSpread" category="action" quote="ASK" />
+          </prices>
+        </action>
+        <!--Group actions-->
+        <action id="Output" name="sendDataToWeb" type="actionGroup" members="SubmitterRics.GetLastQuote,SubmitterRics.Netchng,FixingRics.GetLastQuote,ConfirmRics.Statistics,FixingRics.Netchng,WebUI.SubmitterDateView,FixingRics.Shred,WebUI.SwitchFixingVal,WebUI.FixingRate,WebUI.RefixFixingRate,WebUI.RefixFixingChange,WebUI.Statistics,WebUI.AllSubAndMiddleQua,WebUI.Statistics,WebUI.BenchmarkChart,WebUI.SendSpread"></action>
+      </actions>
+    </component>
+  </components>
+  <triggers>
+    <!--when start time hits, will initialize all components, this one is default one, and id is by default t0 and cannot be changed by users-->
+    <!--Workflow Triggered-->
+    <!--InitializationOnce-->
+    <trigger id="InitializationOnce" name="start stage trigger" mode="once">
+      <conditions>
+        <condition type="time" predicate="laterthan">con:[*START_TIME]</condition>
+      </conditions>
+      <targets>OutDateRicsX.Shred,DateGenerator.CalToday,DateGenerator.GenValueDate,OutDateRicsX.CopyDates,WebUI.SendDate</targets>
+    </trigger>
+    <!--ClearInhibit-->
+    <trigger id="ClearInhibit" name="ClearInhibit" mode="once" updatestamp="true" redoifresume="false" gotowaiting="false">
+      <conditions>
+        <condition type="time" predicate="laterthan">con:[*START_TIME]</condition>
+      </conditions>
+      <targets>ConfirmRics.ShredTime,ConfirmRics.ClearInhibit</targets>
+    </trigger>
+    <!--SubmitterAndFixingRics-->
+    <trigger id="SubmitterAndFixingRics" name="shred" mode="always">
+      <conditions>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("SubmitterRics.rics") || $ricsupdated("FixingRics.rics")|| $ricsupdated("FixingPage.rics")|| $ricsupdated("SubFixingPage.rics")]]></exp>
+        </condition>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+      </conditions>
+      <targets>FixingRics.Shred,SubmitterRics.Shred,FixingPage.Shred,SubFixingPage.Shred</targets>
+    </trigger>
+    <!--InitializationAlways-->
+    <trigger id="InitializationAlways" name="start stage trigger" mode="always" updatestamp="false" redoifresume="false" gotowaiting="false">
+      <conditions>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("InputRics.rics") || $ricsupdated("ConfirmRics.rics")]]></exp>
+        </condition>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+      </conditions>
+      <targets>InputRics.Shred,ConfirmRics.Shred,WebUI.SubmitterDateView</targets>
+    </trigger>
+    <!--Cleardown-->
+    <trigger id="Cleardown" name="Cleardown" mode="once" updatestamp="true" redoifresume="false" gotowaiting="false">
+      <conditions>
+        <condition type="time" predicate="laterthan">con:[*CLEAR_DOWN_TIME]</condition>
+      </conditions>
+      <targets>InputRics.Shred,ConfirmRics.ShredTime,InputRics.Cleardown,ConfirmRics.Cleardown,FixingPage.Cleardown</targets>
+    </trigger>
+    <!--ContributionWindow-->
+    <trigger id="ContributionWindow" name="Contribution window" mode="always">
+      <conditions>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("InputRics.rics")]]></exp>
+        </condition>
+        <condition type="time" predicate="during">con:[*CLEAR_DOWN_TIME],con:[*SUB_WIN_CLOSE_TIME]</condition>
+      </conditions>
+      <targets>InputRics.Shred,ConfirmRics.Shred,InputRics.CheckInputs,ConfirmRics.AutoSnap,ConfirmRics.ConfirmChecks,ConfirmRics.QualityChecks,ConfirmRics.CalBenchmarkFixing,WebUI.Output
+	  </targets>
+    </trigger>
+    <trigger id="SendMessageDuringAllTime" name="Contribution window" mode="always">
+      <conditions>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("ConfirmRics.rics")]]></exp>
+        </condition>
+        <condition type="time" predicate="during">con:[*CLEAR_DOWN_TIME],con:[*STOP_TIME]</condition>
+      </conditions>
+      <targets>InputRics.Shred,ConfirmRics.Shred,InputRics.CheckInputs,ConfirmRics.AutoSnap,ConfirmRics.ConfirmChecks,ConfirmRics.QualityChecks,ConfirmRics.CalBenchmarkFixing,ConfirmRics.SendMessage,WebUI.Output</targets>
+    </trigger>
+    <!--VerificationWindow-->
+    <trigger id="VerificationWindow" name="Verification window" mode="always">
+      <conditions>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("InputRics.rics")]]></exp>
+        </condition>
+        <condition type="time" predicate="during">con:[*SUB_WIN_CLOSE_TIME],con:[*STOP_TIME]</condition>
+      </conditions>
+      <targets>InputRics.Shred,ConfirmRics.Shred,ConfirmRics.ConfirmChecks,ConfirmRics.QualityChecks,ConfirmRics.CalBenchmarkFixing,WebUI.Output
+	  </targets>
+    </trigger>
+    <!--Refix Publication-->
+    <trigger id="Refix Publication" name="Refix Publish" mode="once" updatestamp="true" redoifresume="false" gotowaiting="true" ispublish="true">
+      <conditions>
+        <condition type="time" predicate="during">con:[*REFIX_WIN_PUB_START_TIME],con:[*REFIX_WIN_PUB_END_TIME]</condition>
+        <condition type="suspend" predicate="false"></condition>
+        <condition type="expression">
+          <exp><![CDATA[$isrefix()]]></exp>
+        </condition>
+      </conditions>
+      <targets>SubmitterRics.Publish,FixingRics.Publish,FixingPage.Publish,SubFixingPage.Publish</targets>
+    </trigger>
+    <!--Publication-->
+    <trigger id="Publication" name="Publish" mode="once" updatestamp="true" redoifresume="false" gotowaiting="true" ispublish="true">
+      <conditions>
+        <condition type="time" predicate="laterthan">con:[*PUB_TIME]</condition>
+        <condition type="suspend" predicate="false"></condition>
+        <condition type="expression">
+          <exp><![CDATA[$isrefix()==false]]></exp>
+        </condition>
+      </conditions>
+      <targets>SubmitterRics.Publish,FixingRics.Publish,FixingPage.Publish,SubFixingPage.Publish</targets>
+    </trigger>
+    <!--Command Triggered-->
+    <trigger id="Resnap" name="resnap" mode="resnap">
+      <conditions>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+      </conditions>
+      <targets>InputRics.Shred,InputRics.PaddingBid,InputRics.ResnapCheckInputs,ConfirmRics.Resnap</targets>
+    </trigger>
+    <trigger id="Inhibit" name="inhibit confirm time" mode="inhibit">
+      <conditions>
+        <condition type="time" predicate="during">con:[*START_TIME],con:[*STOP_TIME]</condition>
+      </conditions>
+      <targets>ConfirmRics.UpdateInhibit,ConfirmRics.SendMessage</targets>
+    </trigger>
+    <trigger id="ModifyData" name="modifyData" mode="modifyData">
+      <targets>InputRics.Modify</targets>
+    </trigger>
+    <trigger id="ModifyDate" name="modifyDate" mode="modifyDate">
+      <targets>OutDateRicsX.Modify</targets>
+    </trigger>
+    <trigger id="UpdateDate" name="updatedate" mode="always">
+      <conditions>
+        <condition type="update" predicate="">OutDateRicsX.rics</condition>
+      </conditions>
+      <targets>OutDateRicsX.Shred,WebUI.SendDate</targets>
+    </trigger>
+    <trigger id="SetError" name="set error" mode="once">
+      <conditions>
+        <condition type="time" predicate="laterthan">con:[*PUB_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("InputRics.rics") || $ricsupdated("ConfirmRics.rics") && x <= 0]]></exp>
+          <maps>
+            <map alias="x" ref="ConfirmRics.FixingPossible:count"></map>
+          </maps>
+        </condition>
+      </conditions>
+      <functions><![CDATA[$setstatusiserror()]]></functions>
+    </trigger>
+    <trigger id="SetWarning" name="set warning" mode="once">
+      <conditions>
+        <condition type="time" predicate="laterthan">con:[*WARNING_TIME]</condition>
+        <condition type="expression">
+          <exp><![CDATA[$ricsupdated("InputRics.rics") || $ricsupdated("ConfirmRics.rics") && x <= 0]]></exp>
+          <maps>
+            <map alias="x" ref="ConfirmRics.FixingPossible:count"></map>
+          </maps>
+        </condition>
+      </conditions>
+      <functions><![CDATA[$setstatuswarning()]]></functions>
+    </trigger>
+  </triggers>
+</rule>

@@ -1,0 +1,33 @@
+
+<html ng-app="ciborgApp">
+    <head>
+        <title>Rule designer file management</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <!-- AppServer: The toolkitver meta tag is required -->
+        <meta name="toolkitver" content="1.0.9.6702" />
+        <script src="js/angular.min.js"></script>
+        <script src="js/CRclient.js"></script>
+        <script src="js/ng-file-upload.js"></script>
+        <link rel="stylesheet" type="text/css" href="CRstyle.css" />
+    </head>
+    <body ng-app="fileUpload" ng-controller="MyCtrl">
+      <h4>Upload on file select</h4>
+      <button ngf-select="uploadFiles($files, $invalidFiles)" multiple
+              accept="image/*" ngf-max-height="1000" ngf-max-size="1MB">
+          Select Files</button>
+      <br><br>
+      Files:
+      <ul>
+        <li ng-repeat="f in files" style="font:smaller">{{f.name}} {{f.$errorParam}}
+          <span class="progress" ng-show="f.progress >= 0">
+            <div style="width:{{f.progress}}%"
+                ng-bind="f.progress + '%'"></div>
+          </span>
+        </li>
+        <li ng-repeat="f in errFiles" style="font:smaller">{{f.name}} {{f.$error}} {{f.$errorParam}}
+        </li>
+      </ul>
+      {{errorMsg}}
+      <button type="button" ng-click="downloadF()" name="button">Download</button>
+    </body>
+</html>

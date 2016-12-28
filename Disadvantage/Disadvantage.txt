@@ -1,0 +1,4 @@
+There are following limitations of Node.js:
+It doesn’t support multi-threaded programming.
+It doesn’t support very high computational intensive tasks. When it executes long running task, it will queue all the incoming requests to wait for execution, since it follows JavaScript event loop which is single threaded.
+Node good for executing synchronous and CPU intensive tasks.
