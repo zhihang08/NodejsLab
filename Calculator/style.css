@@ -1,0 +1,47 @@
+/* ***************** Outer panel ******************** */
+div[class*='cal_']{
+  border: 1px solid black;
+  min-height: 20px;
+  margin: 5 0 5 0px;
+}
+.cal_result{
+  width: 200px;
+  height: 25px;
+}
+.cal_num{
+  width: 110px;
+  height: 130px;
+  float: left;
+}
+.cal_operator{
+  width: 70px;
+  height: 120px;
+  float: left;
+}
+
+/********************** Num & Operator *************************** */
+div[class*='opt_'], div[class*='num_']{
+  padding: 8px;
+  width: 15px;
+  height: 15px;
+  float: left;
+  border: 1px solid black
+}
+div[class*='opt_']:hover, div[class*='num_']:hover{
+cursor: pointer;
+}
+/*********** Adjust Num position *********** */
+div[class*='num_']:nth-child(3n+1):not(:nth-child(10)){
+  color: #cac;
+  margin-left: 40px;
+  /*3 6 9 */
+}
+div[class*='num_']:nth-child(3n+2){
+  color: #cec;
+  /* 2 5 8*/
+}
+div[class*='num_']:nth-child(3n+3){
+  color: #ccc;
+  margin-left: -40px;
+  /* 1 4 7*/
+}

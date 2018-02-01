@@ -1,7 +1,7 @@
-var app = express();
 const express = require("express");
+var app = express();
 const request = require('request');
-const http = require('http');
+var http = require('http');
 const port = 8185
 
 const requestHandler = (request, response) => {
