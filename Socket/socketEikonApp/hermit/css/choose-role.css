@@ -1,0 +1,270 @@
+body {
+    height: 100%;
+    background-image: url("../img/Puzzle-1.jpg");
+    background-size: cover;
+    background-attachment: fixed;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    position: relative;
+}
+
+/* .room-list{
+    width: 200px;
+    height: 200px;
+    overflow: auto;
+    background: white;
+    position: absolute;
+    border: 1px solid white;
+    font-size: 12px;
+    z-index: 1000;
+}
+.room-list input{
+    font-size: 12px;
+    width: 110px;
+    min-width: 50px;
+    margin-left: 2px;
+}
+.room-list ul{
+    padding: 5px;
+    list-style: none;
+    cursor: pointer;
+}
+.li-choosen{
+    background-color: #1beabd;
+} */
+.title {
+    position: absolute;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    top: 130px;
+    text-align: center;
+    font-size: 50px;
+    text-shadow: 2px 2px 6px #ddd;
+    color: #cdd9e1;
+    z-index: 400;
+    width: 100%;
+}
+.blurred-box {
+    display: grid;
+    grid-template-columns: 100%;
+    position: relative;
+    width: 30%;
+    left: calc(36.5%);
+    height: 300px;
+    top: 180px;
+    background: inherit;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.blurred-box:after{
+    content: '';
+    width: 120%;
+    height: 600px;
+    background: inherit; 
+    position: absolute;
+    left: -25px;
+    right: 0;
+    top: -25px;  
+    bottom: 0;
+    box-shadow: inset 0 0 0 200px rgba(255,255,255,0.05);
+    filter: blur(10px);
+}
+
+
+
+
+.player-icon {
+    justify-self: center;
+    align-self: center;
+    /* position: absolute; */
+    z-index: 100;
+    /* top: 80px; */
+}
+
+.player-icon img {
+    transition: transform .2s;
+    transform: scale(1.2);
+    -webkit-box-reflect: below -10px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(67%, transparent), to(rgba(250, 250, 250, 0.5)));
+}
+.player-icon img:hover {
+    transform: scale(1.5);
+}
+
+@keyframes afterInput {
+    0% {
+        grid-template-columns: 100%;
+        grid-template-rows: 100%;
+        width: 25%;
+        left: calc(36.5%);
+    }
+    100% {
+        grid-template-columns: 50% 50%;
+        grid-template-rows: 100%;
+        width: 50%;
+        left: calc(25%);
+    }
+    
+}
+.after-input {
+    animation: afterInput 0.5s 1;
+    -moz-animation: afterInput 0.5s 1;
+    -webkit-animation: afterInput 0.5s 1;
+    -o-animation: afterInput 0.5s 1;
+
+    animation-fill-mode: forwards;
+}
+
+/* @keyframes nonSelectedBack {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+.non-selected-back {
+    animation: nonSelectedBack 0.5s 1;
+    -moz-animation: nonSelectedBack 0.5s 1;
+    -webkit-animation: nonSelectedBack 0.5s 1;
+    -o-animation: nonSelectedBack 0.5s 1;
+
+    animation-fill-mode: forwards;
+} */
+
+@keyframes completedSelected {
+    0% {
+        grid-template-columns: 50% 50%;
+        grid-template-rows: 100%;
+        width: 50%;
+        left: calc(25%);
+    }
+    100% {
+        grid-template-columns: 50% 50%;
+        grid-template-rows: 60% 40%;
+        width: 50%;
+        left: calc(25%);
+    }
+}
+.completed-selected {
+    animation: completedSelected 0.5s 1;
+    -moz-animation: completedSelected 0.5s 1;
+    -webkit-animation: completedSelected 0.5s 1;
+    -o-animation: completedSelected 0.5s 1;
+
+    animation-fill-mode: forwards;
+}
+
+.name-text {
+    justify-self: center;
+    align-self: center;
+    z-index: 1000;
+    font-size: 30px;
+}
+
+#my-name-input {
+    justify-self: center;
+    align-self: center;
+    width: 200px;
+    z-index: 1000;
+    line-height: 30px;
+    height: 30px;
+}
+
+.hide {
+    display: none;
+}
+
+/* input text css begin */
+
+.input {
+    position: relative;
+    font-size: 1.5em;
+    background: linear-gradient(21deg, #10abff, #1beabd);
+    padding: 3px;
+    display: inline-block;
+    border-radius: 9999em;
+  }
+  .input *:not(span) {
+    position: relative;
+    display: inherit;
+    border-radius: inherit;
+    margin: 0;
+    border: none;
+    outline: none;
+    padding: 0 .325em;
+    z-index: 1;
+  }
+  .input *:not(span):focus + span {
+    opacity: 1;
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+  .input span {
+    -webkit-transform: scale(0.993, 0.94);
+            transform: scale(0.993, 0.94);
+    transition: opacity .25s, -webkit-transform .5s;
+    transition: transform .5s, opacity .25s;
+    transition: transform .5s, opacity .25s, -webkit-transform .5s;
+    opacity: 0;
+    position: absolute;
+    z-index: 0;
+    margin: 4px;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 3px #fff, 0 0 0 4px #fff, 3px -3px 30px #1beabd,  -3px 3px 30px #10abff;
+  }
+  
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.5;
+    font-size: 1.5em;
+  }
+   
+  .input-wrapper {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /*
+  html, body {
+    height: 100%;
+  } */
+  
+  input {
+    font-family: inherit;
+    line-height: inherit;
+    color: #2e3750;
+    min-width: 12em;
+  }
+  
+  ::-webkit-input-placeholder {
+    color: #cbd0d5;
+  }
+  
+  :-ms-input-placeholder {
+    color: #cbd0d5;
+  }
+  
+  ::-ms-input-placeholder {
+    color: #cbd0d5;
+  }
+  
+  ::placeholder {
+    color: #cbd0d5;
+  }
+  
+.input-wrapper::after {
+    content: '';
+    background: linear-gradient(21deg, #10abff, #1beabd);
+    height: 3px;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+/* end of input text css */

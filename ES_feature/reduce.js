@@ -38,7 +38,7 @@ Array.prototype.whileLoop = function () {
 Array.prototype.sum = function(){
   let sumResult = 0;
   for (var i = 0; i < 100000; i++) {
-    return this.reduce((preValue, curValue) => {
+     this.reduce((preValue, curValue) => {
        return sumResult = preValue + curValue;
     });
   }

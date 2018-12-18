@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" id="site" class="nojs">
+<head>
+    <!--[if lt IE 9]>
+    <script src="/public/js/vendor/html5shiv.js"></script>
+    <![endif]-->
+    <title>Jigsaw - Hermit</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta name="description" content="A jigsaw puzzle made in HTML5 canvas.">
+
+    
+	<link rel="stylesheet" href="css/jigsaw.min.css"/>
+    <link rel="stylesheet" href="css/jigsaw-puzzle.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+
+    <script src="js/jquery-1.12.4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+
+    <meta property="og:title" content="Jigsaw Puzzle | custarddoughnuts" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="A jigsaw puzzle made in HTML5 canvas." />
+    <meta property="og:url" content="http://custarddoughnuts.co.uk/jigsaw/" />
+    <meta property="og:image" content="http://www.custarddoughnuts.co.uk/public/img/cd.png" />
+    <script>
+        $(function(){
+            
+        });
+    </script>
+</head>
+
+<body id="body">
+
+    <!-- <div class="introduct mark">
+        <p class="title">ROUND 1</p>
+        <p class="introduct-text">拼图游戏，先拼完的一方获胜。</p>
+        <p class="ready color-text">READY?</p>
+        <p class="go">GO</p>
+    </div> -->
+
+    <!-- <div class="result-mark mark">
+        <p class="win color-text">You Win!</p>
+        <p class="gameover color-text">Game Over</p>
+    </div> -->
+
+    <div class="canvaswrapper" id="canvasparent">
+	   	<canvas id="canvas" class="canvas"></canvas>
+    </div>
+
+    <div class="optionstrigger" id="showoptions" style="display: none;"><img src="img/cog.svg" alt="Options"/></div>
+
+    <div id="options" class="optionswrapper">
+        <div class="mask" id="hideoptions"></div>
+        <div class="options">
+            <h1 class="h3 align-center">Jigsaw</h1>
+            <h2 class="h4 align-center">Options</h2>
+        	<label>
+    			Across: <input type="number" id="piecesx"/>
+    		</label>
+    		<label>
+    			Down: <input type="number" id="piecesy"/>
+    		</label>
+    		<label>
+    			Image: <input type="file" id="fileupload"/>
+    		</label>
+    		<button type="submit" id="updatePuzzle" class="btn btn-block">Update</button>
+    		<button type="submit" id="resetPuzzle" class="btn btn-block">Reset</button>
+    	</div>
+    </div>
+
+    <script src="js/deferred.js"></script>
+    <script src="js/start-common.js"></script>
+    <script src="js/jigsaw-puzzle.js"></script>
+	<!-- <script src="js/jigsaw.min.js"></script> -->
+
+
+<script>
+if (document.location.hostname.search("custarddoughnuts.co.uk") !== -1) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-15399447-1', 'custarddoughnuts.co.uk');
+  ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

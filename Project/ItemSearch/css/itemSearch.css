@@ -1,0 +1,78 @@
+.item-detail > p{
+	margin: 5 0 5 0px;
+}
+.hidden{
+	display: none;
+}
+.prompt{
+	border: 2px solid;
+	margin: 3 0 2 1px;
+	padding: 8 12 8 10px;
+	float: left;
+	height: auto;
+  width: 355px;
+  background-color: black
+}
+.prompt > span{
+  float: left;
+}
+.prompt > span.closePrompt{
+  float: right;
+}
+.prompt > span.closePrompt:hover:before{
+  cursor: hand;
+  content: "\e6b0";
+}
+.prompt > p.warn{
+  margin: 0 0 0 51px;
+}
+.prompt > p{
+  margin: 0 0 0 0px;
+  text-indent: 0.5em;
+}
+.prompt > p > span{
+  color: red; /* #ff9933 */
+}
+.ico-prompt{
+  padding: 5 0 0 5px;
+}
+.ico-prompt:hover{
+  cursor: hand;
+	/* background-color: black; */
+}
+#item-name{
+	margin-top: -1px;
+}
+#itemMultiselect{
+  height: 25px;
+}
+#item-search{
+  height: 25px;
+}
+.searchPanel>h5{
+	margin-bottom: 5px;
+}
+.ui-multiselect{
+	width: 120px;
+	min-width: 120px;
+	margin-left: 5px;
+}
+
+
+.tr-grid .no-sort>.valigner>.title{
+	height: 31px !important;
+}
+#search-result .text:hover{
+  /* background-color: red; */
+  /* font-weight: 900; */
+  width: auto;
+}
+#search-result{
+  margin:12 0 0 0px;
+}
+#search-result>input[type=button]{
+  margin: 0 0 5 29px;
+}
+#search-result>span{
+  margin: 0 0 0 5px;
+}

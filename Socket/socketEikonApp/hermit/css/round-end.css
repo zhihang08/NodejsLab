@@ -1,0 +1,79 @@
+body {
+    height: 100%;
+    background-image: url("../img/round1-bg.jpg");
+    background-size: cover;
+    background-attachment: fixed;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+.title {
+    position: absolute;
+    font-family: Arial, Helvetica, sans-serif;
+    top: 150px;
+    text-align: center;
+    font-size: 70px;
+    text-shadow: 2px 2px 6px #ddd;
+    color: #cdd9e1;
+    z-index: 400;
+    width: 100%;
+}
+.blurred-box{
+    display: grid;
+    grid-template-columns: 30% 15% 10% 15% 30%;
+    position: relative;
+    width: 70%;
+    height: 250px;
+    top: 200px;
+    left: calc(15%);
+    background: inherit;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.blurred-box:after{
+    content: '';
+    width: 120%;
+    height: 300px;
+    background: inherit; 
+    position: absolute;
+    left: -25px;
+    right: 0;
+    top: -25px;  
+    bottom: 0;
+    box-shadow: inset 0 0 0 200px rgba(255,255,255,0.05);
+    filter: blur(10px);
+}
+.player-icon {
+    position: absolute;
+    z-index: 100;
+    top: 80px;
+}
+.left-player {
+    left: 50px;
+}
+.right-player {
+    right: 50px;
+}
+.player-icon img {
+    -webkit-box-reflect: below -10px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(67%, transparent), to(rgba(250, 250, 250, 0.5)));
+}
+.player-info {
+    justify-self: center;
+    align-self: center;
+    z-index: 100;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+}
+.big-font  {
+    font-size: 40px;
+}
+.left-player-name {
+    padding-left: 150px;
+    justify-self: left;
+}
+.right-player-name {
+    padding-right: 150px;
+    justify-self: right;
+}

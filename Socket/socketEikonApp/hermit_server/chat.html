@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script src="client/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="client/style.css">
+</head>
+<body>
+    <div class="head-panel">
+        <div class="socketClock">
+            <span>Socket time: </span>
+            <div></div>
+        </div>
+    </div>
+    <div class="left-panel">
+        <div class="roomList">
+            11
+        </div>
+    </div>
+    
+    <div class="right-panel">
+        <ul class="pages">
+            <li class="chat page">
+                <input class="inputMessage" placeholder="Type here..."/>
+                <button class="bqa">Begin Q&A</button>
+                <button class="qa1">Process Q&A1</button>
+                <button class="qa2">Process Q&A2</button>
+                <button class="qa3">Process Q&A3</button>
+                <button class="qa4">Process Q&A4</button>
+                <button class="setS">Set symbol</button>
+                <button class="end">end game</button>
+                <button class="tempLeave">temp leave</button>
+                <div class="chatArea">
+                    <ul class="messages"></ul>
+                </div>
+                
+            </li>
+            <li class="login page">
+                <div>
+                    <h3 class="title">Please register your name</h3>
+                    <input class="usernameInput" type="text" maxlength="14" />
+                </div>
+                <div>
+                    <h3 class="title">Room Name</h3>
+                    <input class="room" type="text" maxlength="14" value="Playground" />
+                </div>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

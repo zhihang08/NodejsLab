@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <!-- <script src="client/main.js"></script> -->
+    <script>
+        $(function () {
+        var socket = io();
+        $('form').submit(function(){
+            socket.emit('chat message', $('#m').val());
+            $('#m').val('');
+            return false;
+        });
+  });
+     </script>
+</head>
+<body>
+    <p>Connection socket</p>
+    <div id="m"></div>
+    <!-- <iframe src="http://localhost:3002" frameborder="0" width="100%" height="700px"></iframe> -->
+</body>
+</html>

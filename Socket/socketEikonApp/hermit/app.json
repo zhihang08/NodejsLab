@@ -1,0 +1,9 @@
+﻿{
+  "name": "Hermit",
+  "description": "Hermit",
+  "version": "0.0.10",
+  "type": "WebApp",
+  "defaultPlatform": "NodeJS",
+  "displayName": "Hermit",
+  "defaultPage": "choose-role.html"
+}

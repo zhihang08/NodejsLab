@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="/js/lib/socket.io.js"></script>
+    <script src="/js/lib/jquery.min.js"></script>
+    <script src="/js/client/basic_feature.js"></script>
+    <script src="/js/client/uncharted_water.js"></script>
+    <script src="/js/client/client.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/app.style.css"/>
+  </head>
+  <body>
+    <div class="entrance">
+      <p>Would your offer your name please?
+      </p>
+      <input id="userName" type="text" name="" value="">
+      <button id="register" type="button" name="button">Go!</button>
+    </div>
+    <div class="msg_center">
+      <div class="msg_center_header">
+      </div>
+      <ul class="global"></ul>
+    </div>
+    <div class="main_panel">
+      <canvas id="main_canvas"></canvas>
+    </div>
+    <div class="message_panel">
+      <input id="imm_mes" type="text" name="" value="">
+      <button id="send_mes" type="button" name="button">Send</button>
+      <button id="open_mkt" type="button" name="button">Trigger Market</button>
+    </div>
+  </body>
+</html>

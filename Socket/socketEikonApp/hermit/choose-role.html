@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Choose Role - Hermit</title>
+    <link rel="stylesheet" href="css/room.css">
+    <link rel="stylesheet" href="css/choose-role.css">
+    <script src="js/jquery-1.12.4.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script src="js/choose-role.js"></script>
+    <script src="js/room.js"></script>
+</head>
+<body>
+    <div class="title">Who Are You</div>
+    <div class="blurred-box">
+        <div class="hide player-icon left-player">
+            <img id="symbol1" class="icon-img" src="img/France.png" alt="">
+        </div>
+        <div class="hide player-icon right-player">
+            <img id="symbol2" class="icon-img" src="img/croatia.png" alt="">
+        </div>
+        <div class="input-wrapper">
+               
+                <div class="container" data-behaviour="search-on-list">
+                    <span class="counter" data-search-on-list="counter"></span>
+                    <input id="my-name-input" class="input-query" type="text" placeholder="Type your nickname"/>
+                    <input id="my-room-input" class="input-query" type="text" data-search-on-list="search" placeholder="Select or create a room..."/>
+                    <div class="list-wrap room-list"></div>
+                    <!-- <button class="my-submit">Submit</button> -->
+                </div>
+            <!-- <p>
+                <span class="input">
+                    
+                    <span></span>
+                    
+                </span>
+            </p> -->
+        </div>
+        
+        <!-- <input type="text" name="" id="my-name-input" class="" placeholder="Type your nickname"> -->
+        <p class="name-text hide" id="symbol1-name-text" ></p>
+        <p class="name-text hide" id="symbol2-name-text" ></p>
+    </div>
+</body>
+</html>

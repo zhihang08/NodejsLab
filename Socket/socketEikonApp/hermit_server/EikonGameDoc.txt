@@ -1,0 +1,248 @@
+Doc
+==========================================================================
+--Set symbol
+Title: set symbol
+Params:
+{
+    uuid: "xxx",
+    symbol: "xxx",
+    room: "xxx"
+}
+Response: 
+{
+    status: "error",
+    mes: "has been opccupy by " + checkSymbol.username 
+  }
+Titile: set symbol
+Broadcast: {
+    status: "success",
+    uuid: mes.uuid,
+    symbol: mes.symbol,
+    mes: currentUser + "set symbol" + mes.symbol
+}
+
+--Register user:
+Title: add user
+Params: 
+{
+    user: "xxx",
+    room: "yyy",
+    symbol: "zzz"
+}
+Response: 
+{
+    numUsers: num
+    uuid: "xxx"
+}
+Title: current room
+Broadcast: 
+[
+    {
+        userName: userName,
+        room: room,
+        uuid: uuid,
+        symbol: symbol
+    },
+    {
+        userName: userName,
+        room: room,
+        uuid: uuid,
+        symbol: symbol
+    }
+]
+==========================================================================
+--Temp leave:
+Title: temp leave
+Description: will temperary save users in current room
+Params: 
+{
+    uuid: "xxx"
+}
+Response:
+//un valid uuid
+{
+    status: "error",
+    mes: "unvalid uuid",
+}
+Broadcast: 
+{
+    leaveID: "xxx"
+}
+==========================================================================
+--Init Game: 
+Title: game init
+Params: 
+{
+    uuid: "xxx"
+    stage: num,
+    leaveID: "yyy"
+}
+error
+//un valid uuid
+{
+    status: "error",
+    mes: "unvalid uuid",
+}
+//not enough user (1)
+{
+    status: "error",
+    mes: "insufficient users",
+}
+Boardcast: 
+{
+    status:"success",
+    mes:"begin game success",
+    id: game.gameID,
+    playerList: [],
+    stage: num
+}
+==========================================================================
+--Process Game: 
+Title: game process
+Params: 
+{
+    uuid: "xxx",
+    gameID: "yyy",
+    data: {}
+}
+//un valid game id
+{
+    status: "error",
+    mes: "unvalid gameID",
+    data: null
+}
+//un valid uuid
+{
+    status: "error",
+    mes: "unvalid",
+    data: null
+}
+Boardcast: 
+{
+    status: "success",
+    mes: "update user data",
+    data: []
+});
+==========================================================================
+--Begin Game: 
+Title: Q_A begin
+Description: will begin a game with all player in your current room
+Params: 
+{
+    uuid: "xxx"
+}
+Return:
+//success   
+{
+    status:"success",
+    mes:"begin Q_A game success",
+}
+//started   
+{
+    status:"started",
+    mes: "game has start",
+    id: currentGame.id,
+    question: game.instance.currentStage
+}
+//error: unvalid params uuid
+{
+    status: "error",
+    mes: "unvalid",
+}
+//error: current room players not enough
+{
+    status: "error",
+    mes: "insufficient users"
+}
+Title: Q_A begin broadcast
+Broadcast: 
+//success
+{
+    status: "success",
+    mes:"begin Q_A game success",
+    id: GameInstance.getID(),
+    playerList: [],
+    beginQuestion: 0
+}
+Broadcast: 
+//success
+{
+    status: "begin Q_A Game",
+    id: GameInstance.getID(),
+    room: "",
+    playerList: [],
+    beginQuestion: ""
+}
+
+=======================================================================================
+
+--Running Game: 
+Title: Q_A
+Description: will begin a game with all player in your current room
+Params: 
+{
+ uuid: "xxx",
+ gameID: "xxx",
+ question: num,
+ answer: answer
+}
+Return:
+//success
+{
+    status:"success",
+    mes:"begin Q_A game success"
+}
+//error: error room name, all game finish
+{
+    status: "error",
+    mes: "cannot find gameID:"
+}
+//error: error room name, a new game haven`t finish
+{
+    status: "error",
+    mes: "cannot find gameID:" id,
+    refGameID: gameByRoom.id 
+}
+//error: unvalid params uuid
+{
+    status: "error",
+    mes: "unvalid"
+}
+//error: current room players not enough
+{
+    status: "error",
+    mes: "insufficient"
+}
+//error: update a finished question
+{
+    status: "error",
+    mes: "duplicate"
+}
+//current user not in this room player list (current game not finish)
+{
+    status: "error",
+    mes: "notPlayer"
+}
+//please wait for next question open
+{
+    status: "error",
+    mes: "stageNotOpen"
+}
+Title: Q_A broadcast
+Broadcast: 
+//success
+{
+    status:"success",
+    mes:"Q_A game question "+ question +" success",
+    instanceID: GameInstance.getID(),
+    currentResult:  {question:"", answer: "", user: ""},
+    gameResult: gameResult
+}
+Broadcast: 
+//finish
+{
+    status:"finish",
+    mes:"Q_A game all question finish",
+    instanceID: GameInstance.getID(),
+    gameResult: gameResult
+}

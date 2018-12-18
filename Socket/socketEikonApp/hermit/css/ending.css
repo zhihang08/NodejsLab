@@ -1,0 +1,76 @@
+html {
+    width: 100%;
+    height: 100%;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-size: 20px;
+    overflow: hidden;
+    background-color: black;
+}
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+@keyframes resultFlag {
+    0% {
+        opacity: 0;
+        transform: scale(10);
+    }
+    40% {
+        transform: scale(1);
+    }
+    60% {
+        transform: scale(1.4);
+    }
+    80% {
+        transform: scale(1);
+    }
+    90% {
+        transform: scale(1.2);
+    } 
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.wallpaper {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: 10;
+    opacity: 1;
+    
+    animation-delay: 1s;
+    animation-fill-mode: forwards;
+}
+.people-img {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: 15;
+    opacity: 0.4;
+}
+.winner {
+    opacity: 0;
+    top: 0;
+    left: 0;
+    position: absolute;
+    font-size: 70px;
+    color: #d2a52e;
+    z-index: 100;
+    margin-left: 200px;
+    animation: resultFlag 0.5s 1;
+    -moz-animation: leresultFlagftOut 0.5s 1;
+    -webkit-animation: resultFlag 0.5s 1;
+    -o-animation: resultFlag 0.5s 1; 
+    animation-delay: 2s;
+    animation-fill-mode: forwards;
+
+}

@@ -1,0 +1,43 @@
+ul {
+  list-style: none;
+  word-wrap: break-word;
+  padding: 2px;
+  overflow: auto;
+  margin: 0px;
+}
+ul>li {
+  margin-top: 5px;
+}
+.msg_center, .main_panel, .message_panel{
+  display: inline;
+}
+.msg_center{
+  border: 1px solid;
+  height: 200px;
+  width: 200px;
+  position: absolute;
+  z-index: 9;
+  text-align: left;
+  left: 500px;
+}
+.msg_center_header{
+  cursor: move;
+  height: 20px;
+  background-color: blue;
+  text-align: center;
+  z-index: 10;
+}
+.msg_center>ul{
+  height: 180px;
+}
+.message_panel{
+  height: 25px;
+  border: 1px solid black;
+  position: absolute;
+  bottom: 15px;
+  padding: 10px;
+  width: 500px;
+}
+.main_panel>canvas{
+  border: 1px solid;
+}

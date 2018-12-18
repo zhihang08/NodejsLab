@@ -1,0 +1,9 @@
+﻿{
+  "name": "EIKON_Game_Socket",
+  "description": "Socket_Test",
+  "version": "0.0.6",
+  "type": "WebApp",
+  "defaultPlatform": "NodeJS",
+  "displayName": "Socket Test",
+  "defaultPage": "chat.html"
+}

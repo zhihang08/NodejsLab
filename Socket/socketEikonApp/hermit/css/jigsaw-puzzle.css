@@ -1,0 +1,13 @@
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+}
+body {
+    background-color: #1a1a1c !important;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}

@@ -1,0 +1,43 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "FD server API",
+        "description": "FD Server API to show how to write OpenAPI Specification"
+    },
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "host": "localhost:3005",
+    "basePath": "",
+    "paths": {
+        "/addUser": {
+            "get": {
+                "summary": "Add user",
+                "description": "Returns a list containing all persons.",
+                "responses": {
+                    "200": {
+                        "description": "A list of Person",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "properties": {
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
