@@ -4,11 +4,16 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program class",
+            "name": "Launch entrance",
+            "program": "${workspaceFolder}\\ES_feature\\entrance.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program class test",
             "program": "${workspaceFolder}\\ES_feature\\class.js"
         },
         {
@@ -16,6 +21,12 @@
             "request": "launch",
             "name": "Launch Program server",
             "program": "${workspaceFolder}\\FDInterface_BackEnd\\server.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch question",
+            "program": "${workspaceFolder}\\MyQuestion\\recursion.js"
         }
     ]
 }

@@ -1,0 +1,14 @@
+{
+    "name": "myquestion",
+    "version": "0.0.1",
+    "description": "A simple test play ground",
+    "main": "recursion.js",
+    "author": "Zhi",
+    "private": true,
+    "license": "BSD",
+    "dependencies": {
+    },
+    "scripts": {
+      "start": "node recursion.js"
+    }
+}
