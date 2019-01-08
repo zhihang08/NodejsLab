@@ -45,34 +45,42 @@ iteratorDemo = {
     *createIterator(item){
         for (let index = 0; index < item.length; index++) {
             yield item[index];
-            
         }
     }
 }
 
 fibonacci = {
-    *createFibonacci(array){
-        for (let index = 0; index < array.length; index++) {
-           (index <= 2)? yield 1 : yield array[index];
+    *createFibonacciList(count){
+        var target = [];
+        for (let index = 0; index < count; index++) {
+            index < 2 ? target[index] = 1 
+            : target[index] = target[index - 1] + target[index - 2];
+            yield target[index];
         }
     },
-    //F(n)=F(n-1)+F(n-2)
-    step(beforeN, aheadN, n){
-        if (n < 3) {
-            return 1;
+    *createFibonacciListSimple(){
+        var current = a = b = 1;
+        yield 1;
+        while (true) {
+          current = b;
+          yield current;
+          b = a + b;
+          a = current;
         }
-        return beforeN + aheadN;
     },
+    fibonacciAppoint(n){
+        return n < 1 ? 0 
+            : n < 2 ? 1 
+            : fibonacci.fibonacciAppoint(n - 1) + fibonacci.fibonacciAppoint(n - 2);
+    },
+    fibonacciAppointWithPhi(n){
+        //This is most efficient way to calculate fibonacci value, 
+        //but it works correctly for not big values. 
+        //For example it gives wrong value for fib(77). 
+        //It gives 5527939700884755, but in fact it must be 5527939700884757.
+        let phi = (1 + Math.sqrt(5))/2;
+        let asymp = Math.pow(phi, n) / Math.sqrt(5);
 
-    run(taskDef){
-        let task = taskDef();
-        let result = task.next();
-        function step() {
-            if(!result.done){
-                result = task.next({"n1": 1, "n2": 1});
-                step();
-            }
-        }
-        step();
+        return Math.round(asymp);
     }
 }
